@@ -1,26 +1,49 @@
-import React from 'react';
-import logo from './logo.svg';
-import './App.css';
+import React, { useState, useEffect } from "react";
+import WorldMap from "./map/WorldMap";
+import "./App.css";
+import { countryFormatter } from "./utils/helpers";
 
-function App() {
+const App = () => {
+  const [data, setData] = useState();
+
+  useEffect(() => {
+    fetch("https://corona.lmao.ninja/countries", {
+      headers: {
+        "Access-Control-Allow-Origin": "*"
+      }
+    })
+      .then(response => response.json())
+      .then(res => {
+        const formatedData = [];
+        res.map(item => {
+          formatedData.push(countryFormatter(item));
+        });
+        return formatedData;
+      })
+      .then(formatedData => {
+        const data = formatedData.map(item => {
+          return {
+            key: item.country,
+            value: {
+              cases: item.cases,
+              todayCases: item.todayCases,
+              deaths: item.deaths,
+              todayDeaths: item.todayDeaths,
+              recovered: item.recovered,
+              critical: item.critical
+            }
+          };
+        });
+        return data;
+      })
+      .then(data => setData(data))
+      .catch(err => console.log(err));
+  }, []);
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+    <div>
+      <WorldMap data={data} />
     </div>
   );
-}
+};
 
 export default App;
